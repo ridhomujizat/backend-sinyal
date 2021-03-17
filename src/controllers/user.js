@@ -3,7 +3,7 @@ const response = require('../helpers/response')
 const fs = require('fs')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const { APP_KEY, APP_URL } = process.env
+const { APP_KEY } = process.env
 const sendEmail = require('../helpers/sendEmail')
 
 exports.login = async (req, res) => {
@@ -25,8 +25,16 @@ exports.login = async (req, res) => {
       const createUser = await userModel.createUser(data)
       if (createUser.insertId > 0) {
         sendEmail(email, pin, 'Sinyal App PIN Code')
-        const result = await userModel.getUser(email)
-        return response(res, 200, true, 'User created successfully', result[0])
+        const results = await userModel.getUser(email)
+        return response(res, 200, true, 'User created successfully',
+          {
+            id: results[0].id,
+            firstName: results[0].firstName,
+            lastName: results[0].lastName,
+            picture: results[0].picture,
+            email: results[0].email
+
+          })
       }
       return response(res, 400, false, 'Cant create user')
     }
@@ -38,7 +46,14 @@ exports.login = async (req, res) => {
     const updatePin = await userModel.updateUser(initialResult[0].id, { pin: encryptedPin })
     if (updatePin.affectedRows > 0) {
       sendEmail(email, pin, 'Sinyal App PIN Code')
-      return response(res, 200, true, 'User Found successfully', { ...initialResult[0], pin: encryptedPin })
+      return response(res, 200, true, 'User Found successfully',
+        {
+          id: initialResult[0].id,
+          firstName: initialResult[0].firstName,
+          lastName: initialResult[0].lastName,
+          picture: initialResult[0].picture,
+          email: initialResult[0].email
+        })
     }
     return response(res, 400, false, 'Bad Request')
   } catch (err) {

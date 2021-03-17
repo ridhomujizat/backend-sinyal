@@ -46,9 +46,9 @@ exports.updateUser = (id, data) => {
 exports.getAllContactByCondition = (id, cond) => {
   return new Promise((resolve, reject) => {
     const query = db.query(`
-    SELECT id, fristName, lastName, email,  picture 
+    SELECT id, firstName, lastName, email,  picture 
     FROM users
-    WHERE CONCAT(fristName, ' ', lastName) LIKE "%${cond.search}%" AND id NOT IN (${id})
+    WHERE CONCAT(firstName, ' ', lastName) LIKE "%${cond.search}%" AND id NOT IN (${id})
     ORDER BY ${cond.sort} ${cond.order}
     LIMIT ${cond.limit} OFFSET ${cond.offset}
     `, (err, res, field) => {
@@ -64,7 +64,7 @@ exports.getCountContactByCondition = (id, cond) => {
     const query = db.query(`
     SELECT COUNT(id) as totalData 
     FROM users 
-    WHERE CONCAT(fristName, ' ', lastName) LIKE "%${cond.search}%"  AND id NOT IN (${id})
+    WHERE CONCAT(firstName, ' ', lastName) LIKE "%${cond.search}%"  AND id NOT IN (${id})
     `, (err, res, field) => {
       if (err) reject(err)
       resolve(res)
