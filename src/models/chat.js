@@ -3,7 +3,7 @@ const db = require('../helpers/db')
 exports.getChatHistory = (id, cond) => {
   return new Promise((resolve, reject) => {
     const query = db.query(`
-    SELECT m.*, u.id as idUser, picture, firstName, lastName, email
+    SELECT m.createdAt, m.chat, m.idReceiver, m.idSender, u.id, picture, firstName, lastName, email
     FROM message m
     INNER JOIN users u ON u.id=m.idSender OR u.id = m.idReceiver
     WHERE (m.idSender=${id} OR m.idReceiver=${id}) AND m.isLast = 1
@@ -23,10 +23,12 @@ exports.getCountChatHistory = (id, cond) => {
     const query = db.query(`
     SELECT COUNT(m.id) as totalData
     FROM message m
-    INNER JOIN users s ON s.id = m.idSender
-    INNER JOIN users r ON r.id = m.idReceiver
-    WHERE (m.idSender=${id} OR m.idReceiver=${id}) AND m.isLast = '1'
+    INNER JOIN users u ON u.id=m.idSender OR u.id = m.idReceiver
+    WHERE (m.idSender=${id} OR m.idReceiver=${id}) AND m.isLast = 1
+    AND CONCAT(u.firstName, ' ', u.lastName) LIKE "%${cond.search}%"
+    AND u.id NOT IN (${id})
     ORDER BY m.${cond.sort} ${cond.order}
+    LIMIT ${cond.limit} OFFSET ${cond.offset}
     `, (err, res, field) => {
       if (err) reject(err)
       resolve(res)

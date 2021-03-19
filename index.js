@@ -6,8 +6,20 @@ const dotenv = require('dotenv')
 
 dotenv.config()
 const { APP_PORT } = process.env
-
 const app = express()
+const server = require('http').createServer(app)
+const io = require('socket.io')(server, {
+  cors: {
+    origin: '*'
+  }
+})
+
+io.on('connection', () => {
+  console.log('a user connected')
+})
+
+const socket = require('./src/middleware/socket')
+app.use(socket(io))
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(morgan('dev'))
@@ -37,6 +49,6 @@ app.get('*', (req, res) => {
   })
 })
 
-app.listen(APP_PORT, () => {
+server.listen(APP_PORT, () => {
   console.log(`App is running on port ${APP_PORT}`)
 })

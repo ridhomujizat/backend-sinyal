@@ -64,7 +64,9 @@ exports.getCountContactByCondition = (id, cond) => {
     const query = db.query(`
     SELECT COUNT(id) as totalData 
     FROM users 
-    WHERE CONCAT(firstName, ' ', lastName) LIKE "%${cond.search}%"  AND id NOT IN (${id})
+    WHERE CONCAT(firstName, ' ', lastName) LIKE "%${cond.search}%" AND id NOT IN (${id})
+    ORDER BY ${cond.sort} ${cond.order}
+    LIMIT ${cond.limit} OFFSET ${cond.offset}
     `, (err, res, field) => {
       if (err) reject(err)
       resolve(res)
@@ -78,7 +80,7 @@ exports.getCountContact = (id, cond) => {
     const query = db.query(`
     SELECT COUNT(id) as totalData 
     FROM users 
-    WHERE id NOT IN (${id})
+    WHERE CONCAT(firstName, ' ', lastName) LIKE "%${cond.search}%"  AND id NOT IN (${id})
     `, (err, res, field) => {
       if (err) reject(err)
       resolve(res)

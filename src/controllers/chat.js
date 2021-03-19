@@ -2,18 +2,23 @@ const response = require('../helpers/response')
 const chatModel = require('../models/chat')
 const userModel = require('../models/user')
 const qs = require('querystring')
-const { APP_URL } = process.env
 
 exports.chatList = async (req, res) => {
   try {
     const { id } = req.userData
     console.log(id)
     const cond = req.query
+    const query = qs.stringify({
+      limit: cond.limit,
+      offset: cond.offset,
+      sort: cond.sort,
+      order: cond.order
+    })
     cond.search = cond.search || ''
     cond.page = Number(cond.page) || 1
     cond.limit = Number(cond.limit) || 10
     cond.offset = (cond.page - 1) * cond.limit
-    cond.sort = cond.sort || 'id'
+    cond.sort = cond.sort || 'createdAt'
     cond.order = cond.order || 'DESC'
 
     const results = await chatModel.getChatHistory(id, cond)
@@ -40,8 +45,13 @@ exports.chatList = async (req, res) => {
         totalData: totalData[0].totalData,
         currentPage: cond.page,
         totalPage,
-        nextLink: cond.page < totalPage ? `${APP_URL}/chat/list-history?${qs.stringify({ ...req.query, ...{ page: cond.page + 1 } })}` : null,
-        prevLink: cond.page > 1 ? `${APP_URL}/chat/list-history?${qs.stringify({ ...req.query, ...{ page: cond.page - 1 } })}` : null
+
+        nextLink: (cond.search.length > 0
+          ? (cond.page < totalPage ? `page=${cond.page + 1}&search=${cond.search}&${query}` : null)
+          : (cond.page < totalPage ? `page=${cond.page + 1}&${query}` : null)),
+        prevLink: (cond.search.length > 0
+          ? (cond.page > 1 ? `page=${cond.page - 1}&search=${cond.search}&${query}` : null)
+          : (cond.page > 1 ? `page=${cond.page - 1}&${query}` : null))
       }
     )
   } catch (err) {
@@ -54,8 +64,13 @@ exports.RoomChat = async (req, res) => {
   try {
     const { id } = req.userData
     const { idUser } = req.params
-    console.log(id, idUser)
     const cond = req.query
+    const query = qs.stringify({
+      limit: cond.limit,
+      offset: cond.offset,
+      sort: cond.sort,
+      order: cond.order
+    })
     cond.search = cond.search || ''
     cond.page = Number(cond.page) || 1
     cond.limit = Number(cond.limit) || 10
@@ -77,8 +92,12 @@ exports.RoomChat = async (req, res) => {
         totalData: totalData[0].totalData,
         currentPage: cond.page,
         totalPage,
-        nextLink: cond.page < totalPage ? `${APP_URL}/chat/history?${qs.stringify({ ...req.query, ...{ page: cond.page + 1 } })}` : null,
-        prevLink: cond.page > 1 ? `${APP_URL}/chat/history?${qs.stringify({ ...req.query, ...{ page: cond.page - 1 } })}` : null
+        nextLink: (cond.search.length > 0
+          ? (cond.page < totalPage ? `page=${cond.page + 1}&search=${cond.search}&${query}` : null)
+          : (cond.page < totalPage ? `page=${cond.page + 1}&${query}` : null)),
+        prevLink: (cond.search.length > 0
+          ? (cond.page > 1 ? `page=${cond.page - 1}&search=${cond.search}&${query}` : null)
+          : (cond.page > 1 ? `page=${cond.page - 1}&${query}` : null))
       }
     )
   } catch (err) {
@@ -101,11 +120,13 @@ exports.sendChat = async (req, res) => {
       const results = await chatModel.sendChat({ idSender: id, idReceiver: idUser, chat: data.chat })
       if (results.insertId > 0) {
         console.log(results)
+        console.log(req.socket.emit(idUser, results), 'test')
         req.socket.emit(idUser, results)
         return response(res, 200, true, 'Successfully sent the message')
       }
       return response(res, 400, 'Failed to send message')
     }
+    return response(res, 400, false, 'Bad Request')
   } catch (err) {
     console.log(err)
     return response(res, 400, false, 'Bad Request')

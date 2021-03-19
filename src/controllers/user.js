@@ -24,6 +24,7 @@ exports.login = async (req, res) => {
 
       const createUser = await userModel.createUser(data)
       if (createUser.insertId > 0) {
+        console.log(pin)
         sendEmail(email, pin, 'Sinyal App PIN Code')
         const results = await userModel.getUser(email)
         return response(res, 200, true, 'User created successfully',
@@ -45,6 +46,7 @@ exports.login = async (req, res) => {
     const encryptedPin = await bcrypt.hash(pin, salt)
     const updatePin = await userModel.updateUser(initialResult[0].id, { pin: encryptedPin })
     if (updatePin.affectedRows > 0) {
+      console.log(pin)
       sendEmail(email, pin, 'Sinyal App PIN Code')
       return response(res, 200, true, 'User Found successfully',
         {
@@ -72,7 +74,12 @@ exports.confirmLogin = async (req, res) => {
         const { id, email, firstname, lastname, picture } = initialResult[0]
         const token = jwt.sign({ id, email, firstname, lastname, picture }, APP_KEY)
         const results = {
-          token: token
+          token: token,
+          id: initialResult[0].id,
+          firstName: initialResult[0].firstName,
+          lastName: initialResult[0].lastName,
+          picture: initialResult[0].picture,
+          email: initialResult[0].email
         }
         return response(res, 200, true, 'Login succesfully', results)
       }
@@ -102,20 +109,56 @@ exports.updateUser = async (req, res) => {
       const uploadImage = await userModel.updateUser(initialResults[0].id, { picture })
       if (uploadImage.affectedRows > 0) {
         if (initialResults[0].picture !== null) {
-          fs.unlinkSync(`upload/profile/${initialResults[0].picture}`)
+          fs.unlinkSync(`${initialResults[0].picture}`)
         }
-        return response(res, 200, true, 'Image hash been Updated', { id, picture })
+        return response(res, 200, true, 'Picture hash been Updated', {
+          id: initialResults[0].id,
+          firstName: initialResults[0].firstName,
+          lastName: initialResults[0].lastName,
+          email: initialResults[0].email,
+          picture
+        })
       }
       return response(res, 400, false, 'Cant update image')
     }
 
     const finalResult = await userModel.updateUser(id, data)
     if (finalResult.affectedRows > 0) {
-      return response(res, 200, true, 'Personal Information has been updated', { ...initialResults[0], ...data })
+      return response(res, 200, true, 'Personal Information has been updated',
+        {
+          id: initialResults[0].id,
+          firstName: initialResults[0].firstName,
+          lastName: initialResults[0].lastName,
+          picture: initialResults[0].picture,
+          email: initialResults[0].email,
+          ...data
+        })
     }
     return response(res, 400, false, 'Cant Update personal Information')
   } catch (err) {
     console.log(err)
+    return response(res, 400, false, 'Bad Request')
+  }
+}
+
+exports.getUserDetail = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const results = await userModel.getUsersByCondition({ id: id })
+
+    if (results.length > 0) {
+      return response(res, 200, true, 'User Found',
+        {
+          id: results[0].id,
+          firstName: results[0].firstName,
+          lastName: results[0].lastName,
+          picture: results[0].picture,
+          email: results[0].email
+        })
+    }
+    return response(res, 404, false, 'User Not Found')
+  } catch (err) {
     return response(res, 400, false, 'Bad Request')
   }
 }

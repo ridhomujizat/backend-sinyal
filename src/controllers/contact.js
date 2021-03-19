@@ -1,4 +1,3 @@
-const { APP_URL } = process.env
 const userModel = require('../models/user')
 const response = require('../helpers/response')
 const qs = require('querystring')
@@ -7,24 +6,21 @@ exports.getContact = async (req, res) => {
   try {
     const { id } = req.userData
     const cond = req.query
+    const query = qs.stringify({
+      limit: cond.limit,
+      offset: cond.offset,
+      sort: cond.sort,
+      order: cond.order
+    })
     cond.search = cond.search || ''
     cond.page = Number(cond.page) || 1
     cond.limit = Number(cond.limit) || 4
     cond.offset = (cond.page - 1) * cond.limit
-    cond.sort = cond.sort || 'id'
+    cond.sort = cond.sort || 'firstName'
     cond.order = cond.order || 'ASC'
 
-    let totalPage
-    let totalData
-
-    if (cond.search) {
-      totalData = await userModel.getCountContactByCondition(id, cond)
-      totalPage = Math.ceil(Number(totalData[0].totalData) / cond.limit)
-    } else {
-      totalData = await userModel.getCountContact(id, cond)
-      totalPage = Math.ceil(Number(totalData[0].totalData) / cond.limit)
-    }
-
+    const totalData = await userModel.getCountContactByCondition(id, cond)
+    const totalPage = Math.ceil(Number(totalData[0].totalData) / cond.limit)
     const results = await userModel.getAllContactByCondition(id, cond)
 
     return response(
@@ -37,8 +33,12 @@ exports.getContact = async (req, res) => {
         totalData: totalData[0].totalData,
         currentPage: cond.page,
         totalPage,
-        nextLink: cond.page < totalPage ? `${APP_URL}contact?${qs.stringify({ ...req.query, ...{ page: cond.page + 1 } })}` : null,
-        prevLink: cond.page > 1 ? `${APP_URL}contact?${qs.stringify({ ...req.query, ...{ page: cond.page - 1 } })}` : null
+        nextLink: (cond.search.length > 0
+          ? (cond.page < totalPage ? `page=${cond.page + 1}&search=${cond.search}&${query}` : null)
+          : (cond.page < totalPage ? `page=${cond.page + 1}&${query}` : null)),
+        prevLink: (cond.search.length > 0
+          ? (cond.page > 1 ? `page=${cond.page - 1}&search=${cond.search}&${query}` : null)
+          : (cond.page > 1 ? `page=${cond.page - 1}&${query}` : null))
       }
     )
   } catch (err) {
