@@ -1,20 +1,30 @@
 const mailer = require('nodemailer')
+const smtpTransport = require('nodemailer-smtp-transport')
 const fs = require('fs')
 const mustache = require('mustache')
 const userModel = require('../models/user')
 const path = require('path')
-const { EMAIL_USER, EMAIL_PASS } = process.env
+
+const {
+  EMAIL_SERVICE,
+  EMAIL_HOST,
+  EMAIL_USER,
+  EMAIL_PASS
+} = process.env
 
 module.exports = async (email, pin, subject, message) => {
   const template = fs.readFileSync(path.resolve(__dirname, './template.html'), 'utf-8')
 
-  const transporter = mailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS
-    }
-  })
+  const transporter = nodemailer.createTransport(
+    smtpTransport({
+      service: EMAIL_SERVICE,
+      host: EMAIL_HOST,
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS
+      }
+    })
+  )
 
   const getUserEmail = await userModel.getUser(email)
   const results = {
