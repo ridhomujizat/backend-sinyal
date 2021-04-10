@@ -15,7 +15,7 @@ const {
 module.exports = async (email, pin, subject, message) => {
   const template = fs.readFileSync(path.resolve(__dirname, './template.html'), 'utf-8')
 
-  const transporter = nodemailer.createTransport(
+  const transporter = mailer.createTransport(
     smtpTransport({
       service: EMAIL_SERVICE,
       host: EMAIL_HOST,
