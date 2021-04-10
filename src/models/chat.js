@@ -15,7 +15,6 @@ exports.getChatHistory = (id, cond) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 exports.getCountChatHistory = (id, cond) => {
@@ -28,12 +27,10 @@ exports.getCountChatHistory = (id, cond) => {
     AND CONCAT(u.firstName, ' ', u.lastName) LIKE "%${cond.search}%"
     AND u.id NOT IN (${id})
     ORDER BY m.${cond.sort} ${cond.order}
-    LIMIT ${cond.limit} OFFSET ${cond.offset}
     `, (err, res, field) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -48,7 +45,6 @@ exports.getChatList = (id, idSelf, cond) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -62,7 +58,6 @@ exports.getCountChatList = (id, idSelf, cond) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -77,7 +72,6 @@ exports.sendChat = (data) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -91,6 +85,5 @@ exports.changeLastChat = (id, idSelf) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }

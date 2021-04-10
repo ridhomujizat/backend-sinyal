@@ -8,7 +8,6 @@ exports.getUser = (data) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -23,7 +22,6 @@ exports.createUser = (data) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -39,7 +37,6 @@ exports.updateUser = (id, data) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -55,7 +52,6 @@ exports.getAllContactByCondition = (id, cond) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -66,12 +62,10 @@ exports.getCountContactByCondition = (id, cond) => {
     FROM users 
     WHERE CONCAT(firstName, ' ', lastName) LIKE "%${cond.search}%" AND id NOT IN (${id})
     ORDER BY ${cond.sort} ${cond.order}
-    LIMIT ${cond.limit} OFFSET ${cond.offset}
     `, (err, res, field) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -85,7 +79,6 @@ exports.getCountContact = (id, cond) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }
 
@@ -97,6 +90,5 @@ exports.getUsersByCondition = (cond) => {
       if (err) reject(err)
       resolve(res)
     })
-    console.log(query.sql)
   })
 }

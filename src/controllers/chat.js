@@ -6,7 +6,6 @@ const qs = require('querystring')
 exports.chatList = async (req, res) => {
   try {
     const { id } = req.userData
-    console.log(id)
     const cond = req.query
     const query = qs.stringify({
       limit: cond.limit,
@@ -24,17 +23,6 @@ exports.chatList = async (req, res) => {
     const results = await chatModel.getChatHistory(id, cond)
     const totalData = await chatModel.getCountChatHistory(id, cond)
     const totalPage = Math.ceil(Number(totalData[0].totalData) / cond.limit)
-    // return response(res, 200, true, 'Chat List',
-    //   results.reduce((value, item) => {
-    //     // const index = .findIndex(x => x.idUser ==="yutu");
-    //     if (value.findIndex(x => x.idUser === item.idUser) === -1) {
-    //       value.push(item)
-    //     } else {
-    //       const index = value.findIndex(x => x.idUser === item.idUser)
-    //       value[index] = item
-    //     }
-    //     return value
-    //   }, []))
     return response(
       res,
       200,
@@ -112,16 +100,14 @@ exports.sendChat = async (req, res) => {
     const { id } = req.userData
     const data = req.body
 
-    console.log(data)
-    const initialResult = await userModel.getUsersByCondition({ id: idUser })
+    const initialResult = await userModel.getUsersByCondition({ id })
 
     if (initialResult.length > 0) {
       await chatModel.changeLastChat(id, idUser)
       const results = await chatModel.sendChat({ idSender: id, idReceiver: idUser, chat: data.chat })
       if (results.insertId > 0) {
-        console.log(results)
-        console.log(req.socket.emit(idUser, results), 'test')
-        req.socket.emit(idUser, results)
+        console.log(initialResult[0].firstName)
+        req.socket.emit(idUser, `${initialResult[0].firstName}: ${data.chat}`)
         return response(res, 200, true, 'Successfully sent the message')
       }
       return response(res, 400, 'Failed to send message')

@@ -108,7 +108,7 @@ exports.updateUser = async (req, res) => {
       const picture = req.file.path
       const uploadImage = await userModel.updateUser(initialResults[0].id, { picture })
       if (uploadImage.affectedRows > 0) {
-        if (initialResults[0].picture !== null) {
+        if (fs.existsSync(initialResults[0].picture)) {
           fs.unlinkSync(`${initialResults[0].picture}`)
         }
         return response(res, 200, true, 'Picture hash been Updated', {
